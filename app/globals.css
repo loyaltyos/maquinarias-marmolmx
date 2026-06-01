@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+:root {
+  --yellow: #facc15;
+  --red: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f4f4f5;
+  color: #18181b;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.concrete {
+  background-color: #27272a;
+  background-image:
+    linear-gradient(135deg, rgb(255 255 255 / 4%) 25%, transparent 25%),
+    linear-gradient(315deg, rgb(255 255 255 / 4%) 25%, transparent 25%);
+  background-size: 22px 22px;
+}
+
+.hazard {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #facc15,
+    #facc15 12px,
+    #18181b 12px,
+    #18181b 24px
+  );
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@keyframes whatsapp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(37 211 102 / 35%); }
+  50% { box-shadow: 0 0 0 12px rgb(37 211 102 / 0%); }
+}
+
+.whatsapp-pulse {
+  animation: whatsapp-pulse 2.4s ease-out infinite;
+}
