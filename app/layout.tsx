@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     "revolvedora de concreto",
     "compactadora",
   ],
+  verification: {
+    google: "LHPZ-0rfHm32gnPRRWDQuNID1jjXUn7Waa5i7vWUIPg",
+  },
   openGraph: {
     title: "Maquinarias Mármol MX | Maquinaria industrial y construcción en México",
     description:
