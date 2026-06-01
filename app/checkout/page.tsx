@@ -112,7 +112,7 @@ export default function CheckoutPage() {
                 </button>
               ))}
             </div>
-            <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">El pedido se validará antes de generar la referencia de pago. Mientras Conekta no tenga llaves configuradas, el checkout continuará funcionando en modo demo.</p>
+            <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">Validaremos tu pedido y te confirmaremos el seguimiento del pago. Tus datos se procesan de forma segura.</p>
             {error && <p className="mt-3 border-l-4 border-red-600 bg-red-50 p-3 text-xs font-bold leading-5 text-red-700">{error}</p>}
           </div>
           <label className="flex items-start gap-3 border border-zinc-300 bg-white p-4 text-xs font-bold leading-5 text-zinc-700 shadow-sm">

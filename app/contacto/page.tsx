@@ -1,7 +1,7 @@
 import { Clock, Mail, MapPin, MessageCircle } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { COMPANY } from "@/lib/company";
-import { WHATSAPP_NUMBER, whatsappUrl } from "@/lib/whatsapp";
+import { isWhatsAppConfigured, WHATSAPP_NUMBER, whatsappUrl } from "@/lib/whatsapp";
 
 export default function ContactPage() {
   return (
@@ -20,13 +20,15 @@ export default function ContactPage() {
             {COMPANY.emails.map((email) => <a key={email} href={`mailto:${email}`} className="flex gap-3 transition hover:text-yellow-400"><Mail size={19} className="shrink-0 text-yellow-400" /> {email}</a>)}
             <p className="flex gap-3"><MapPin size={19} className="shrink-0 text-yellow-400" /> {COMPANY.location}</p>
             <p className="flex gap-3"><Clock size={19} className="shrink-0 text-yellow-400" /> {COMPANY.schedule}</p>
-            <p className="flex gap-3"><MessageCircle size={19} className="shrink-0 text-yellow-400" /> +{WHATSAPP_NUMBER}</p>
+            <p className="flex gap-3"><MessageCircle size={19} className="shrink-0 text-yellow-400" /> {isWhatsAppConfigured ? `+${WHATSAPP_NUMBER}` : "Atención por WhatsApp disponible próximamente"}</p>
           </div>
-          <a href={whatsappUrl("Hola, quiero recibir información sobre maquinaria de Maquinarias Mármol MX.")} target="_blank" rel="noreferrer" className="mt-7 flex items-center justify-center gap-2 bg-[#25D366] px-5 py-4 text-sm font-black uppercase text-white transition hover:bg-[#20bd5a]">
-            <MessageCircle size={18} /> Escribir por WhatsApp
-          </a>
+          {isWhatsAppConfigured && (
+            <a href={whatsappUrl("Hola, quiero recibir información sobre maquinaria de Maquinarias Mármol MX.")} target="_blank" rel="noreferrer" className="mt-7 flex items-center justify-center gap-2 bg-[#25D366] px-5 py-4 text-sm font-black uppercase text-white transition hover:bg-[#20bd5a]">
+              <MessageCircle size={18} /> Escribir por WhatsApp
+            </a>
+          )}
         </aside>
-        <ContactForm />
+        <div id="formulario"><ContactForm /></div>
       </section>
     </>
   );

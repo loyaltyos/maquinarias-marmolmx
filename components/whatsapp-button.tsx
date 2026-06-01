@@ -4,8 +4,6 @@ export function WhatsAppButton() {
   return (
     <a
       href={whatsappUrl("Hola, quiero cotizar maquinaria de Maquinarias Mármol MX.")}
-      target="_blank"
-      rel="noreferrer"
       aria-label="Cotizar por WhatsApp"
       className="whatsapp-pulse fixed bottom-4 right-4 z-40 grid size-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105 hover:bg-[#20bd5a] sm:bottom-5 sm:right-5"
     >
