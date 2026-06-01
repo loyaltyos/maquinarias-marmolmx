@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, Mail, MapPin } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { COMPANY } from "@/lib/company";
 
@@ -33,6 +33,7 @@ export function Footer() {
         <div className="space-y-2 text-sm">
           <p className="mb-3 font-black uppercase text-yellow-400">Información corporativa</p>
           {COMPANY.emails.map((email) => <a key={email} href={`mailto:${email}`} className="flex gap-2 break-all transition hover:text-yellow-400"><Mail size={17} className="shrink-0" /> {email}</a>)}
+          <a href={COMPANY.phoneLink} className="flex gap-2 transition hover:text-yellow-400"><Phone size={17} className="shrink-0" /> {COMPANY.phoneDisplay}</a>
           <p className="flex gap-2"><MapPin size={17} /> {COMPANY.location}</p>
           <p className="flex gap-2"><MapPin size={17} /> {COMPANY.footerShippingText}</p>
           <p className="flex gap-2"><Clock size={17} /> {COMPANY.schedule}</p>
