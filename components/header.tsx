@@ -10,7 +10,7 @@ const links = [
   ["Inicio", "/"],
   ["Catálogo", "/catalogo"],
   ["Nosotros", "/#nosotros"],
-  ["Contacto", "/#contacto"],
+  ["Contacto", "/contacto"],
 ];
 
 export function Header() {

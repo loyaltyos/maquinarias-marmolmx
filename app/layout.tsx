@@ -6,10 +6,11 @@ import { Header } from "@/components/header";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://marmolmx.com.mx"),
-  title: "Maquinarias Mármol MX | División Industrial de Mármol MX",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://maquinariasmarmol.com.mx"),
+  title: "Maquinarias Mármol MX | Maquinaria industrial y construcción en México",
   description:
-    "Maquinaria industrial, montacargas, soldadoras, dobladoras y equipos para construcción en México. División especializada de Mármol MX.",
+    "Venta de maquinaria industrial, montacargas, soldadoras, dobladoras, revolvedoras y equipos de construcción en México.",
+  alternates: { canonical: "https://maquinariasmarmol.com.mx" },
   keywords: [
     "maquinaria industrial México",
     "maquinaria construcción México",
@@ -20,11 +21,12 @@ export const metadata: Metadata = {
     "compactadora",
   ],
   openGraph: {
-    title: "Maquinarias Mármol MX | División Industrial de Mármol MX",
+    title: "Maquinarias Mármol MX | Maquinaria industrial y construcción en México",
     description:
-      "Maquinaria industrial, montacargas, soldadoras, dobladoras y equipos para construcción en México. División especializada de Mármol MX.",
+      "Venta de maquinaria industrial, montacargas, soldadoras, dobladoras, revolvedoras y equipos de construcción en México.",
     type: "website",
     locale: "es_MX",
+    url: "https://maquinariasmarmol.com.mx",
     images: [
       {
         url: "/logo-marmolmx.png",

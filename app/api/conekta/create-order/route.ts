@@ -20,6 +20,7 @@ type CheckoutPayload = {
   total?: unknown;
   paymentMethod?: unknown;
   cardToken?: unknown;
+  acceptedPolicies?: unknown;
 };
 
 type ValidatedOrder = {
@@ -39,7 +40,7 @@ function text(value: unknown) {
 function validateOrder(body: CheckoutPayload): ValidatedOrder | null {
   const customer = body.customer;
   const paymentMethod = text(body.paymentMethod) as PaymentMethod;
-  if (!customer || !paymentMethods.includes(paymentMethod) || !Array.isArray(body.items) || !body.items.length) return null;
+  if (body.acceptedPolicies !== true || !customer || !paymentMethods.includes(paymentMethod) || !Array.isArray(body.items) || !body.items.length) return null;
 
   const validatedCustomer = {
     name: text(customer.name),

@@ -59,3 +59,25 @@ a {
 .whatsapp-pulse {
   animation: whatsapp-pulse 2.4s ease-out infinite;
 }
+
+.legal-content h2 {
+  margin-top: 1.75rem;
+  border-left: 4px solid #facc15;
+  padding-left: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.legal-content p {
+  margin-top: 0.9rem;
+  color: #52525b;
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.75;
+}
+
+.legal-content a {
+  color: #b91c1c;
+  text-decoration: underline;
+}

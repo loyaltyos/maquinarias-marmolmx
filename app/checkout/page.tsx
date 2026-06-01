@@ -22,6 +22,7 @@ export default function CheckoutPage() {
   const [success, setSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [error, setError] = useState("");
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,7 +40,7 @@ export default function CheckoutPage() {
       const response = await fetch("/api/conekta/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer, items, total: subtotal, paymentMethod, cardToken }),
+        body: JSON.stringify({ customer, items, total: subtotal, paymentMethod, cardToken, acceptedPolicies }),
       });
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "No fue posible generar el pedido.");
@@ -114,6 +115,12 @@ export default function CheckoutPage() {
             <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">El pedido se validará antes de generar la referencia de pago. Mientras Conekta no tenga llaves configuradas, el checkout continuará funcionando en modo demo.</p>
             {error && <p className="mt-3 border-l-4 border-red-600 bg-red-50 p-3 text-xs font-bold leading-5 text-red-700">{error}</p>}
           </div>
+          <label className="flex items-start gap-3 border border-zinc-300 bg-white p-4 text-xs font-bold leading-5 text-zinc-700 shadow-sm">
+            <input required type="checkbox" checked={acceptedPolicies} onChange={(event) => setAcceptedPolicies(event.target.checked)} className="mt-1 size-4 shrink-0 accent-red-600" />
+            <span>
+              He leído y acepto los <Link href="/terminos-y-condiciones" target="_blank" className="text-red-700 underline">Términos y Condiciones</Link>, <Link href="/aviso-de-privacidad" target="_blank" className="text-red-700 underline">Aviso de Privacidad</Link>, <Link href="/envios" target="_blank" className="text-red-700 underline">Política de Envíos</Link> y <Link href="/devoluciones-y-reembolsos" target="_blank" className="text-red-700 underline">Política de Devoluciones</Link>.
+            </span>
+          </label>
         </div>
         <aside className="h-fit border-t-4 border-yellow-400 bg-zinc-900 p-6 text-white">
           <h2 className="text-xl font-black uppercase">Resumen del pedido</h2>
@@ -121,7 +128,7 @@ export default function CheckoutPage() {
             {items.map((item) => <div key={item.id} className="flex justify-between gap-3 text-xs"><span>{item.quantity} × {item.name}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}
           </div>
           <div className="flex justify-between text-lg font-black"><span>Total</span><span>{formatPrice(subtotal)}</span></div>
-          <button disabled={loading} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:opacity-60">{loading ? "Generando pedido..." : "Generar pedido"}</button>
+          <button disabled={loading || !acceptedPolicies} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Generando pedido..." : "Generar pedido"}</button>
         </aside>
       </form>
     </section>
