@@ -8,7 +8,7 @@ export default function TermsPage() {
       <h2>Catalogo y cotizaciones</h2>
       <p>Las imagenes son ilustrativas de cada tipo de equipo. La disponibilidad, condiciones de entrega y caracteristicas especificas se confirman durante el proceso de compra o cotizacion. Los precios se muestran en pesos mexicanos e indican IVA incluido cuando asi se especifica.</p>
       <h2>Pedidos y pagos</h2>
-      <p>Un pedido se considera confirmado una vez que el pago haya sido autorizado y validado. Podremos solicitar informacion adicional cuando sea necesaria para proteger al cliente o verificar la operacion. Los pagos se procesan mediante Stripe Checkout cuando la pasarela este disponible.</p>
+      <p>Un pedido se considera confirmado una vez que el pago haya sido autorizado y validado. Podremos solicitar informacion adicional cuando sea necesaria para proteger al cliente o verificar la operacion. Los pagos se procesaran mediante Conekta cuando la pasarela este disponible.</p>
       <h2>Entrega</h2>
       <p>El costo, modalidad y plazo de envio dependen del tipo de maquinaria, peso, volumen y destino. Estos datos se confirman antes de despachar el equipo.</p>
       <h2>Uso responsable</h2>

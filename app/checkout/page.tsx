@@ -16,12 +16,19 @@ const fields = [
   ["postalCode", "Codigo postal", "text"],
 ] as const;
 
+const paymentMethods = [
+  ["card", "Tarjeta"],
+  ["spei", "SPEI"],
+  ["oxxo_cash", "OXXO Pay"],
+] as const;
+
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<(typeof paymentMethods)[number][0]>("oxxo_cash");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,12 +43,12 @@ export default function CheckoutPage() {
     const customer = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch("/api/stripe/create-checkout-session", {
+      const response = await fetch("/api/conekta/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customer, items, total: subtotal, acceptedPolicies }),
+        body: JSON.stringify({ customer, items, total: subtotal, acceptedPolicies, paymentMethod }),
       });
-      const result = (await response.json()) as { error?: string; mode?: "demo" | "stripe"; url?: string };
+      const result = (await response.json()) as { error?: string; mode?: "demo" | "conekta"; url?: string };
       if (!response.ok) throw new Error(result.error || "No fue posible generar el pedido.");
 
       if (result.url) {
@@ -108,7 +115,22 @@ export default function CheckoutPage() {
             <h2 className="mb-5 text-xl font-black uppercase">Pago seguro</h2>
             <div className="flex items-start gap-3 border-2 border-zinc-200 p-4 text-sm font-bold text-zinc-700">
               <ShieldCheck size={22} className="mt-0.5 shrink-0 text-green-600" />
-              <p>Al continuar, te enviaremos a Stripe Checkout para completar el pago de forma segura.</p>
+              <p>Al continuar, generaremos tu pedido con Conekta. Los pagos reales se activaran cuando existan llaves oficiales.</p>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {paymentMethods.map(([value, label]) => (
+                <label key={value} className="flex cursor-pointer items-center gap-2 border border-zinc-300 p-3 text-xs font-black uppercase text-zinc-700">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={value}
+                    checked={paymentMethod === value}
+                    onChange={() => setPaymentMethod(value)}
+                    className="accent-red-600"
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
             <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">Validaremos tu pedido y te confirmaremos el seguimiento del pago. Tus datos se procesan de forma segura.</p>
             {error && <p className="mt-3 border-l-4 border-red-600 bg-red-50 p-3 text-xs font-bold leading-5 text-red-700">{error}</p>}
@@ -126,7 +148,7 @@ export default function CheckoutPage() {
             {items.map((item) => <div key={item.id} className="flex justify-between gap-3 text-xs"><span>{item.quantity} x {item.name}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}
           </div>
           <div className="flex justify-between text-lg font-black"><span>Total</span><span>{formatPrice(subtotal)}</span></div>
-          <button disabled={loading || !acceptedPolicies} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Redirigiendo..." : "Pagar ahora"}</button>
+          <button disabled={loading || !acceptedPolicies} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Generando..." : "Finalizar pedido"}</button>
         </aside>
       </form>
     </section>

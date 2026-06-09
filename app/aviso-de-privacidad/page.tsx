@@ -6,7 +6,7 @@ export default function PrivacyPage() {
     <LegalPage title="Aviso de Privacidad">
       <p>{COMPANY.name}, con atencion en {COMPANY.location}, es responsable del tratamiento y proteccion de los datos personales que proporciona mediante este sitio web.</p>
       <h2>Datos que recopilamos</h2>
-      <p>Podemos solicitar nombre, correo electronico, telefono, direccion de entrega, ciudad, estado, codigo postal y metodo de contacto preferido. Para pagos, los datos sensibles se procesaran mediante Stripe Checkout; no almacenamos numeros completos de tarjeta.</p>
+      <p>Podemos solicitar nombre, correo electronico, telefono, direccion de entrega, ciudad, estado, codigo postal y metodo de contacto preferido. Para pagos, los datos sensibles se procesaran mediante Conekta; no almacenamos numeros completos de tarjeta.</p>
       <h2>Finalidades</h2>
       <p>Utilizamos sus datos para responder solicitudes, elaborar cotizaciones, gestionar pedidos, coordinar entregas, emitir facturas cuando se soliciten y brindar atencion antes y despues de la compra.</p>
       <h2>Transferencias y conservacion</h2>
