@@ -47,6 +47,12 @@ type ConektaOrderResponse = {
   };
 };
 
+function getConektaEnvironment(privateKey: string) {
+  const normalizedKey = privateKey.toLowerCase();
+  if (normalizedKey.includes("test") || normalizedKey.includes("sandbox")) return "prueba";
+  return "produccion";
+}
+
 function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -114,9 +120,12 @@ function validateOrder(body: CheckoutPayload): ValidatedOrder | null {
 async function createCardOrder(order: ValidatedOrder) {
   const privateKey = process.env.CONEKTA_PRIVATE_KEY;
   if (!privateKey) {
-    console.error("Conekta card charge blocked: CONEKTA_PRIVATE_KEY is not configured.");
+    console.error("Conekta card charge blocked", {
+      reason: "CONEKTA_PRIVATE_KEY is not configured",
+    });
     throw new Error("La pasarela de pago no esta configurada. Intenta nuevamente mas tarde.");
   }
+  const conektaEnvironment = getConektaEnvironment(privateKey);
 
   const orderSummary = order.items.map((item) => `${item.quantity} x ${item.name}`).join("; ");
   const payload = {
@@ -153,8 +162,13 @@ async function createCardOrder(order: ValidatedOrder) {
     },
   };
 
-  console.log("Creating simple Conekta card order", {
+  console.log("Ambiente Conekta detectado", {
+    ambiente: conektaEnvironment,
+  });
+  console.log("Crear cargo con moneda MXN", {
+    currency: payload.currency,
     totalMxn: order.total,
+    amountInCents: order.total * 100,
     itemCount: order.items.length,
     tokenReceived: Boolean(order.tokenId),
   });
@@ -171,7 +185,7 @@ async function createCardOrder(order: ValidatedOrder) {
   });
 
   const responsePayload = (await response.json().catch(() => null)) as ConektaOrderResponse | ConektaErrorPayload | null;
-  console.log("Simple Conekta card response", {
+  console.log("Respuesta de Conekta para cargo con tarjeta", {
     ok: response.ok,
     status: response.status,
     orderId: "id" in (responsePayload || {}) ? (responsePayload as ConektaOrderResponse).id : undefined,
@@ -179,16 +193,19 @@ async function createCardOrder(order: ValidatedOrder) {
   });
 
   if (!response.ok) {
-    console.error("Simple Conekta card charge failed", {
+    const conektaMessage = getConektaMessage(responsePayload);
+    console.error("Error al crear cargo en Conekta", {
       status: response.status,
-      message: getConektaMessage(responsePayload),
-      payload: responsePayload,
+      message: conektaMessage,
     });
 
     return {
       ok: false as const,
       status: response.status === 402 ? 402 : 400,
-      message: response.status === 402 ? "El pago fue rechazado. Verifica los datos de tu tarjeta o intenta con otra." : "No fue posible procesar el pago. Revisa tus datos e intenta nuevamente.",
+      message:
+        response.status === 402
+          ? "El pago fue rechazado por Conekta. Verifica los datos de tu tarjeta o intenta con otra."
+          : `Conekta no pudo procesar el cargo: ${conektaMessage}`,
     };
   }
 
