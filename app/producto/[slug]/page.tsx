@@ -28,6 +28,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
           <div className="flex flex-col justify-center">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-red-600">{product.category}</p>
+            {product.badge && (
+              <p className="mt-3 w-fit bg-red-600 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+                {product.badge}
+              </p>
+            )}
             <h1 className="mt-3 text-4xl font-black uppercase leading-tight sm:text-5xl">{product.name}</h1>
             <p className="mt-5 text-3xl font-black">{formatPrice(product.price)}</p>
             <p className="text-xs font-bold text-zinc-500">MXN · IVA incluido</p>

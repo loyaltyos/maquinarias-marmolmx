@@ -31,6 +31,11 @@ const categories = [
   ["Equipos para obra", Building2, "Soluciones listas para trabajar"],
 ] as const;
 
+const featuredProducts = [
+  ...products.slice(0, 6),
+  products.find((product) => product.slug === "producto-prueba-integracion-conekta"),
+].filter((product): product is NonNullable<typeof product> => Boolean(product));
+
 export default function Home() {
   return (
     <>
@@ -113,7 +118,7 @@ export default function Home() {
           <Link href="/catalogo" className="flex items-center gap-2 text-sm font-black uppercase text-red-600">Ver todo el catálogo <ArrowRight size={18} /></Link>
         </div>
         <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.slice(0, 6).map((product) => <ProductCard key={product.id} product={product} />)}
+          {featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
       </section>
 

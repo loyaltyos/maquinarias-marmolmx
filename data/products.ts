@@ -113,6 +113,17 @@ export const products: Product[] = [
       "Rodillo compactador para superficies, caminos, obra civil y preparación de terreno.",
     image: "/images/compactacion.webp",
   },
+  {
+    id: 11,
+    slug: "producto-prueba-integracion-conekta",
+    name: "Producto de prueba integración Conekta",
+    price: 1000,
+    category: "Prueba de pago",
+    description:
+      "Producto creado únicamente para pruebas de integración de pago. Este artículo permite validar el flujo de compra, checkout y confirmación de pedido en ambiente de pruebas.",
+    image: "/images/hero-industrial.webp",
+    badge: "Producto de prueba",
+  },
 ];
 
 export const categories = [
@@ -122,4 +133,5 @@ export const categories = [
   "Montacargas",
   "Revolvedoras",
   "Compactación",
+  "Prueba de pago",
 ];

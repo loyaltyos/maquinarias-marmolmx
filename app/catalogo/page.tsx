@@ -11,11 +11,22 @@ export default function CatalogPage() {
 
   const filteredProducts = useMemo(
     () =>
-      products.filter(
-        (product) =>
+      products.filter((product) => {
+        const normalizedQuery = query.toLowerCase();
+        const searchableText = [
+          product.name,
+          product.category,
+          product.description,
+          product.badge ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return (
           (category === "Todos" || product.category === category) &&
-          product.name.toLowerCase().includes(query.toLowerCase()),
-      ),
+          searchableText.includes(normalizedQuery)
+        );
+      }),
     [category, query],
   );
 
