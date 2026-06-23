@@ -18,17 +18,33 @@ const fields = [
 
 const paymentMethods = [
   ["card", "Tarjeta"],
-  ["spei", "SPEI"],
   ["oxxo_cash", "OXXO Pay"],
+  ["spei", "SPEI"],
 ] as const;
+
+type CheckoutResponse = {
+  error?: string;
+  mode?: "conekta";
+  status?: "pending_payment";
+  orderId?: string;
+  checkoutId?: string;
+  url?: string;
+  message?: string;
+  paymentMethods?: Array<"card" | "spei" | "oxxo_cash">;
+};
+
+function paymentMethodLabel(value: (typeof paymentMethods)[number][0]) {
+  return paymentMethods.find(([method]) => method === value)?.[1] ?? "Conekta";
+}
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
   const [error, setError] = useState("");
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<(typeof paymentMethods)[number][0]>("oxxo_cash");
+  const [paymentMethod, setPaymentMethod] = useState<(typeof paymentMethods)[number][0]>("card");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,7 +64,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customer, items, total: subtotal, acceptedPolicies, paymentMethod }),
       });
-      const result = (await response.json()) as { error?: string; mode?: "demo" | "conekta"; url?: string };
+      const result = (await response.json()) as CheckoutResponse;
       if (!response.ok) throw new Error(result.error || "No fue posible generar el pedido.");
 
       if (result.url) {
@@ -57,9 +73,17 @@ export default function CheckoutPage() {
       }
 
       clearCart();
+      setPendingMessage(
+        result.message ||
+          `Tu orden quedo pendiente en Conekta. Si elegiste ${paymentMethodLabel(paymentMethod)}, conserva la referencia o instrucciones de pago.`,
+      );
       setSuccess(true);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "No fue posible generar el pedido.");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "No pudimos conectar con Conekta. Revisa tus datos e intenta nuevamente.",
+      );
     } finally {
       setLoading(false);
     }
@@ -70,8 +94,8 @@ export default function CheckoutPage() {
       <section className="mx-auto min-h-[65vh] max-w-3xl px-4 py-20 text-center">
         <CheckCircle2 size={70} className="mx-auto text-green-600" />
         <h1 className="mt-5 text-4xl font-black uppercase">Pedido generado correctamente</h1>
-        <p className="mt-4 font-bold text-zinc-600">Pago pendiente de confirmacion.</p>
-        <p className="mt-2 text-sm text-zinc-500">Nuestro equipo se pondra en contacto contigo para dar seguimiento.</p>
+        <p className="mt-4 font-bold text-zinc-600">{pendingMessage || "Pago pendiente de confirmacion."}</p>
+        <p className="mt-2 text-sm text-zinc-500">Para OXXO Pay o SPEI, conserva la referencia y realiza el pago antes de su vencimiento. Nuestro equipo validara la confirmacion.</p>
         <Link href="/catalogo" className="mt-8 inline-block bg-zinc-900 px-6 py-4 text-sm font-black uppercase text-white">Volver al catalogo</Link>
       </section>
     );
@@ -115,8 +139,9 @@ export default function CheckoutPage() {
             <h2 className="mb-5 text-xl font-black uppercase">Pago seguro</h2>
             <div className="flex items-start gap-3 border-2 border-zinc-200 p-4 text-sm font-bold text-zinc-700">
               <ShieldCheck size={22} className="mt-0.5 shrink-0 text-green-600" />
-              <p>Al continuar, generaremos tu pedido con Conekta. Los pagos reales se activaran cuando existan llaves oficiales.</p>
+              <p>Al continuar, crearemos una orden real en Conekta TEST y te enviaremos al checkout seguro con tarjeta, OXXO Pay y SPEI.</p>
             </div>
+            <p className="mt-4 text-xs font-black uppercase tracking-widest text-zinc-500">Metodo que prefieres usar</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               {paymentMethods.map(([value, label]) => (
                 <label key={value} className="flex cursor-pointer items-center gap-2 border border-zinc-300 p-3 text-xs font-black uppercase text-zinc-700">
@@ -132,7 +157,7 @@ export default function CheckoutPage() {
                 </label>
               ))}
             </div>
-            <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">Validaremos tu pedido y te confirmaremos el seguimiento del pago. Tus datos se procesan de forma segura.</p>
+            <p className="mt-4 border-l-4 border-yellow-400 bg-yellow-50 p-3 text-xs font-bold leading-5 text-zinc-700">Conekta mostrara las instrucciones de pago. Para OXXO Pay o SPEI, guarda la referencia que se genere en el checkout.</p>
             {error && <p className="mt-3 border-l-4 border-red-600 bg-red-50 p-3 text-xs font-bold leading-5 text-red-700">{error}</p>}
           </div>
           <label className="flex items-start gap-3 border border-zinc-300 bg-white p-4 text-xs font-bold leading-5 text-zinc-700 shadow-sm">
@@ -148,7 +173,7 @@ export default function CheckoutPage() {
             {items.map((item) => <div key={item.id} className="flex justify-between gap-3 text-xs"><span>{item.quantity} x {item.name}</span><strong>{formatPrice(item.price * item.quantity)}</strong></div>)}
           </div>
           <div className="flex justify-between text-lg font-black"><span>Total</span><span>{formatPrice(subtotal)}</span></div>
-          <button disabled={loading || !acceptedPolicies} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Generando..." : "Finalizar pedido"}</button>
+          <button disabled={loading || !acceptedPolicies} className="mt-6 w-full bg-yellow-400 px-5 py-4 text-sm font-black uppercase text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-50">{loading ? "Conectando con Conekta..." : "Pagar con Conekta"}</button>
         </aside>
       </form>
     </section>
