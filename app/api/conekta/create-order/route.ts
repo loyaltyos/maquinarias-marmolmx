@@ -12,36 +12,38 @@ type CheckoutCustomer = {
   preferredContact?: unknown;
 };
 
-type PaymentMethod = "card" | "spei" | "oxxo_cash";
-type ConektaPaymentMethod = "card" | "cash" | "bank_transfer";
-
 type CheckoutPayload = {
   customer?: CheckoutCustomer;
   items?: Array<{ id?: unknown; quantity?: unknown }>;
   total?: unknown;
   acceptedPolicies?: unknown;
-  paymentMethod?: unknown;
+  tokenId?: unknown;
 };
 
 type ValidatedOrder = {
   customer: Record<"name" | "email" | "phone" | "address" | "city" | "state" | "postalCode" | "preferredContact", string>;
   items: Array<{ id: number; slug: string; name: string; quantity: number; unitPrice: number; description: string }>;
   total: number;
-  paymentMethod: PaymentMethod;
+  tokenId: string;
+};
+
+type ConektaErrorPayload = {
+  message?: unknown;
+  details?: Array<{ message?: unknown; debug_message?: unknown }>;
 };
 
 type ConektaOrderResponse = {
   id?: string;
-  object?: string;
-  livemode?: boolean;
   amount?: number;
   currency?: string;
   payment_status?: string;
-  checkout?: {
-    id?: string;
-    url?: string;
-    object?: string;
-    livemode?: boolean;
+  charges?: {
+    data?: Array<{
+      id?: string;
+      status?: string;
+      failure_code?: string;
+      failure_message?: string;
+    }>;
   };
 };
 
@@ -53,25 +55,14 @@ function truncate(value: string, maxLength = 500) {
   return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
 }
 
-function normalizePaymentMethod(value: unknown): PaymentMethod {
-  return value === "card" || value === "spei" || value === "oxxo_cash" ? value : "oxxo_cash";
-}
-
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function normalizeSiteUrl(value: string | undefined) {
-  return (value || "https://www.maquinariasmarmol.com.mx").replace(/\/+$/, "");
 }
 
 function getConektaMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") return "Conekta no devolvio detalle del error.";
 
-  const errorPayload = payload as {
-    message?: unknown;
-    details?: Array<{ message?: unknown; debug_message?: unknown }>;
-  };
+  const errorPayload = payload as ConektaErrorPayload;
   const details = errorPayload.details
     ?.map((detail) => text(detail.message) || text(detail.debug_message))
     .filter(Boolean);
@@ -81,7 +72,8 @@ function getConektaMessage(payload: unknown) {
 
 function validateOrder(body: CheckoutPayload): ValidatedOrder | null {
   const customer = body.customer;
-  if (body.acceptedPolicies !== true || !customer || !Array.isArray(body.items) || !body.items.length) return null;
+  const tokenId = text(body.tokenId);
+  if (body.acceptedPolicies !== true || !customer || !Array.isArray(body.items) || !body.items.length || !tokenId) return null;
 
   const validatedCustomer = {
     name: text(customer.name),
@@ -116,25 +108,18 @@ function validateOrder(body: CheckoutPayload): ValidatedOrder | null {
   const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   if (body.total !== undefined && Number(body.total) !== total) return null;
 
-  return {
-    customer: validatedCustomer,
-    items,
-    total,
-    paymentMethod: normalizePaymentMethod(body.paymentMethod),
-  };
+  return { customer: validatedCustomer, items, total, tokenId };
 }
 
-async function createConektaOrder(order: ValidatedOrder) {
+async function createCardOrder(order: ValidatedOrder) {
   const privateKey = process.env.CONEKTA_PRIVATE_KEY;
   if (!privateKey) {
-    console.error("Conekta order blocked: CONEKTA_PRIVATE_KEY is not configured.");
+    console.error("Conekta card charge blocked: CONEKTA_PRIVATE_KEY is not configured.");
     throw new Error("La pasarela de pago no esta configurada. Intenta nuevamente mas tarde.");
   }
 
-  const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
   const orderSummary = order.items.map((item) => `${item.quantity} x ${item.name}`).join("; ");
-  const allowedPaymentMethods: ConektaPaymentMethod[] = ["card", "cash", "bank_transfer"];
-  const requestPayload = {
+  const payload = {
     currency: "MXN",
     customer_info: {
       name: order.customer.name,
@@ -151,35 +136,27 @@ async function createConektaOrder(order: ValidatedOrder) {
         product_slug: item.slug,
       },
     })),
-    checkout: {
-      type: "HostedPayment",
-      name: "Maquinarias Marmol MX",
-      allowed_payment_methods: allowedPaymentMethods,
-      success_url: `${siteUrl}/checkout/success`,
-      failure_url: `${siteUrl}/checkout/cancel`,
-      redirection_time: 3,
-    },
+    charges: [
+      {
+        payment_method: {
+          type: "card",
+          token_id: order.tokenId,
+        },
+      },
+    ],
     metadata: {
-      customer_name: truncate(order.customer.name),
-      customer_email: truncate(order.customer.email),
-      customer_phone: truncate(order.customer.phone),
       order_summary: truncate(orderSummary),
       order_total_mxn: String(order.total),
       shipping_address: truncate(`${order.customer.address}, ${order.customer.city}, ${order.customer.state}, ${order.customer.postalCode}`),
       preferred_contact: truncate(order.customer.preferredContact),
-      requested_payment_method: order.paymentMethod,
-      enabled_payment_methods: allowedPaymentMethods.join(","),
+      integration_flow: "simple_card_token",
     },
   };
 
-  console.log("Creating Conekta TEST order", {
+  console.log("Creating simple Conekta card order", {
     totalMxn: order.total,
     itemCount: order.items.length,
-    allowedPaymentMethods,
-    checkoutType: requestPayload.checkout.type,
-    siteUrl,
-    publicKeyConfigured: Boolean(process.env.NEXT_PUBLIC_CONEKTA_PUBLIC_KEY),
-    siteUrlConfigured: Boolean(process.env.NEXT_PUBLIC_SITE_URL),
+    tokenReceived: Boolean(order.tokenId),
   });
 
   const response = await fetch("https://api.conekta.io/orders", {
@@ -190,35 +167,32 @@ async function createConektaOrder(order: ValidatedOrder) {
       Authorization: `Bearer ${privateKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(requestPayload),
+    body: JSON.stringify(payload),
   });
 
-  const payload = (await response.json().catch(() => null)) as ConektaOrderResponse | null;
-  console.log("Conekta order response", {
+  const responsePayload = (await response.json().catch(() => null)) as ConektaOrderResponse | ConektaErrorPayload | null;
+  console.log("Simple Conekta card response", {
     ok: response.ok,
     status: response.status,
-    orderId: payload?.id,
-    checkoutId: payload?.checkout?.id,
-    hasCheckoutUrl: Boolean(payload?.checkout?.url),
-    paymentStatus: payload?.payment_status,
-    livemode: payload?.livemode,
+    orderId: "id" in (responsePayload || {}) ? (responsePayload as ConektaOrderResponse).id : undefined,
+    paymentStatus: "payment_status" in (responsePayload || {}) ? (responsePayload as ConektaOrderResponse).payment_status : undefined,
   });
 
   if (!response.ok) {
-    console.error("Conekta order creation failed", {
+    console.error("Simple Conekta card charge failed", {
       status: response.status,
-      message: getConektaMessage(payload),
-      payload,
+      message: getConektaMessage(responsePayload),
+      payload: responsePayload,
     });
-    throw new Error("No fue posible generar el pago. Intenta nuevamente.");
+
+    return {
+      ok: false as const,
+      status: response.status === 402 ? 402 : 400,
+      message: response.status === 402 ? "El pago fue rechazado. Verifica los datos de tu tarjeta o intenta con otra." : "No fue posible procesar el pago. Revisa tus datos e intenta nuevamente.",
+    };
   }
 
-  if (!payload?.checkout?.url) {
-    console.error("Conekta order missing checkout URL", payload);
-    throw new Error("Conekta no devolvio una URL de checkout. Intenta nuevamente.");
-  }
-
-  return payload;
+  return { ok: true as const, payload: responsePayload as ConektaOrderResponse };
 }
 
 export async function POST(request: Request) {
@@ -227,19 +201,18 @@ export async function POST(request: Request) {
   if (!order) return NextResponse.json({ error: "Datos de pedido incompletos o invalidos." }, { status: 400 });
 
   try {
-    const conektaOrder = await createConektaOrder(order);
+    const result = await createCardOrder(order);
+    if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
 
+    const charge = result.payload.charges?.data?.[0];
     return NextResponse.json({
-      mode: "conekta",
-      status: "pending_payment",
-      orderId: conektaOrder.id,
-      checkoutId: conektaOrder.checkout?.id,
-      url: conektaOrder.checkout?.url,
-      message: "Orden creada correctamente. Te redirigiremos al checkout seguro de Conekta.",
-      paymentMethods: ["card", "spei", "oxxo_cash"],
+      status: result.payload.payment_status || charge?.status || "paid",
+      orderId: result.payload.id,
+      chargeId: charge?.id,
+      message: "Pago procesado correctamente. Nuestro equipo validara tu pedido y coordinara el seguimiento.",
     });
   } catch (error) {
-    console.error("No fue posible preparar la orden de Conekta", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "No fue posible generar el pago. Intenta nuevamente." }, { status: 502 });
+    console.error("No fue posible procesar el pago con Conekta", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "No fue posible procesar el pago. Intenta nuevamente." }, { status: 500 });
   }
 }
