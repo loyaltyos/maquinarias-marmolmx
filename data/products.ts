@@ -115,6 +115,39 @@ export const products: Product[] = [
   },
   {
     id: 11,
+    slug: "soldadora-inversora-industrial-250a",
+    name: "Soldadora Inversora Industrial 250A",
+    price: 12000,
+    category: "Soldadura",
+    description:
+      "Soldadora inversora industrial de alto rendimiento para trabajos de fabricacion, mantenimiento y construccion. Disenada para operacion continua y uso profesional.",
+    image: "/images/soldadora.webp",
+    badge: "Producto destacado",
+  },
+  {
+    id: 12,
+    slug: "dobladora-manual-varilla-media-pulgada",
+    name: "Dobladora Manual para Varilla 1/2\"",
+    price: 15000,
+    category: "Construccion",
+    description:
+      "Equipo para doblado preciso de varilla utilizado en obras civiles, construccion y estructuras metalicas.",
+    image: "/images/dobladora.webp",
+    badge: "Producto destacado",
+  },
+  {
+    id: 13,
+    slug: "revolvedora-concreto-1-saco",
+    name: "Revolvedora de Concreto 1 Saco",
+    price: 20000,
+    category: "Construccion",
+    description:
+      "Revolvedora de concreto para uso profesional en proyectos de construccion, remodelacion e infraestructura.",
+    image: "/images/revolvedora.webp",
+    badge: "Producto destacado",
+  },
+  {
+    id: 14,
     slug: "producto-prueba-integracion-conekta",
     name: "Producto de prueba integración Conekta",
     price: 1000,
@@ -128,6 +161,8 @@ export const products: Product[] = [
 
 export const categories = [
   "Todos",
+  "Soldadura",
+  "Construccion",
   "Dobladoras",
   "Soldadoras",
   "Montacargas",
